@@ -1,6 +1,7 @@
 const validator = require("validator");
 
 const validateSignUpData = async (req) => {
+  console.log("req",req)
   const { firstName, lastName, email, password } = req.body;
   if (!firstName || !lastName || !email || !password) {
     throw new Error("FirstName,LastName,Email,Password is required");

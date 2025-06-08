@@ -1,13 +1,13 @@
 const express = require("express");
 const authRouter = express.Router();
 const bcrypt = require("bcrypt");
-const validateSignupData = require("../utils/validate");
+const {validateSignUpData} = require("../utils/validate");
 const jwt = require("jsonwebtoken");
 const user = require("../models/user");
 
 
 authRouter.post("/signup", async (req, res) => {
-  await validateSignupData(req);
+  await validateSignUpData(req);
   try {
     const { firstName, lastName, email, password } = req.body;
     const findExistingUser = await user.findOne({ email: email });
