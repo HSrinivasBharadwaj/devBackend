@@ -56,4 +56,41 @@ connectionRequestRouter.post(
   }
 );
 
+//Review Requests API
+//validate the status
+//Bharadwaj - Akshay 
+//toUserId - accept it because its receivers end
+//LoggedInUser - should be akshay = toUserId
+//Two status - accepted,rejected - only after interested
+//requestId should be in database and valid
+connectionRequestRouter.post(
+  "/request/review/:status/:requestId",
+  validateAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const status = req.params.status;
+      const requestId = req.params.requestId
+      const ALLOWED_STATUS = ["accepted", "rejected"];
+      if (!ALLOWED_STATUS.includes(status)) {
+        return res.status(400).json({ message: "Invalid status sent" });
+      }
+      const reviewConnectionRequest = await connRequest.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested"
+      })
+      if (!reviewConnectionRequest) {
+        return res.status(400).json({message: "Connection request was not found"})
+      }
+      reviewConnectionRequest.status = status
+      const data = await reviewConnectionRequest.save();
+      return res.status(201).json({message: "Connection request accepted successfully",data:data})
+    } catch (error) {
+      console.log("error", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
 module.exports = connectionRequestRouter;
