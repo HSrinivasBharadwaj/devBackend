@@ -1,6 +1,7 @@
 const express = require("express");
 const validateAuth = require("../middleware/auth");
 const connectionRequest = require("../models/connectionRequest");
+const user = require("../models/user");
 const userRouter = express.Router();
 
 //Get all the pending / interested connection requests of the loggedinuser
@@ -29,17 +30,54 @@ userRouter.get("/user/requests/received", validateAuth, async (req, res) => {
 userRouter.get("/user/connections", validateAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-    const getConnection = await connectionRequest.find({
-      $or: [
-        { fromUserId: loggedInUser._id, status: "accepted" },
-        { toUserId: loggedInUser._id, status: "accepted" },
-      ],
-    }).populate("fromUserId", ["firstName","lastName", "photoUrl"]);
-    const data = getConnection.map(data => data.fromUserId)
+    const getConnection = await connectionRequest
+      .find({
+        $or: [
+          { fromUserId: loggedInUser._id, status: "accepted" },
+          { toUserId: loggedInUser._id, status: "accepted" },
+        ],
+      })
+      .populate("fromUserId", ["firstName", "lastName", "photoUrl"])
+      .populate("toUserId", ["firstName", "lastName", "photoUrl"]);
+    const data = getConnection.map((data) => {
+      if (data.fromUserId._id.toString() === loggedInUser._id.toString()) {
+        return data.toUserId;
+      }
+      return data.fromUserId;
+    });
     return res
       .status(200)
       .json({ message: "Fetched all connections", data: data });
   } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+//user/feed api
+
+userRouter.get("/user/feed", validateAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    //Find all the connection request send + received
+    const findConnections = await connectionRequest
+      .find({
+        $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+      })
+      .select("fromUserId toUserId");
+    const hideConnections = new Set();
+    findConnections.forEach((req) => {
+      hideConnections.add(req.fromUserId.toString());
+      hideConnections.add(req.toUserId.toString());
+    });
+    const users = await user.find({
+      $and: [
+        { _id: { $nin: Array.from(hideConnections) } },
+        { _id: { $ne: loggedInUser._id } },
+      ],
+    });
+    return res.status(200).json({ data: users });
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
