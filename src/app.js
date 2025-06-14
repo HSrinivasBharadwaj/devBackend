@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require("express");
 const app = express();
 const cors = require('cors')
@@ -7,7 +8,6 @@ const profileRouter = require('./routes/profile');
 const connectionRequestRouter = require('./routes/connectionRequest');
 const userRouter = require('./routes/user');
 const connectToDataBase = require("./config/database");
-require('dotenv').config()
 const port = process.env.PORT;
 
 
