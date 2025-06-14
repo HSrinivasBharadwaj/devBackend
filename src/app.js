@@ -7,7 +7,8 @@ const profileRouter = require('./routes/profile');
 const connectionRequestRouter = require('./routes/connectionRequest');
 const userRouter = require('./routes/user');
 const connectToDataBase = require("./config/database");
-const port = 7777;
+require('dotenv').config()
+const port = process.env.PORT;
 
 
 app.use(cors({

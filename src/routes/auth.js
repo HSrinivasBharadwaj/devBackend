@@ -38,6 +38,7 @@ authRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const findExistingUser = await user.findOne({ email: email });
+    console.log(findExistingUser)
     if (!findExistingUser) {
       return res
         .status(400)
@@ -50,7 +51,7 @@ authRouter.post("/login", async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid Credentials" });
     } else {
-      const token = jwt.sign({ _id: findExistingUser._id }, "Hullur9606@", {
+      const token = jwt.sign({ _id: findExistingUser._id }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
 
